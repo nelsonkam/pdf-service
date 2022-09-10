@@ -1,9 +1,15 @@
-import { Controller, Get } from 'routing-controllers';
+import { Body, JsonController, Post, UseBefore } from 'routing-controllers';
+import { validationMiddleware } from '@middlewares/validation.middleware';
+import { PdfUploadDto } from '@dtos/pdf-upload.dto';
+import { PdfService } from '@services/pdf.service';
 
-@Controller()
+@JsonController()
 export class PdfController {
-  @Get('/')
-  index() {
-    return 'OK';
+  private service = new PdfService();
+
+  @Post('/')
+  @UseBefore(validationMiddleware(PdfUploadDto, 'body'))
+  async uploadPDF(@Body() dto: PdfUploadDto) {
+    return this.service.preProcessPdf(dto);
   }
 }
