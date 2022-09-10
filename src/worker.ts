@@ -9,14 +9,12 @@ function start(workers: Worker[]) {
   logger.info(`🛠 Starting worker process`);
   logger.info(`=================================`);
   workers.forEach(worker => {
-    const scheduler = new QueueScheduler(worker.name, {
+    new QueueScheduler(worker.name, {
       connection: {
         host: REDIS_HOST,
         port: +REDIS_PORT,
       },
     });
-
-    logger.info(`[${worker.name}] Worker started`);
 
     worker.on('active', job => {
       logger.info(`[${worker.name}] Job Started >> JobId:: ${job.id}, Name:: ${job.name}`);
@@ -26,15 +24,17 @@ function start(workers: Worker[]) {
       logger.info(`[${worker.name}] Job Completed >> JobId:: ${job.id}, Name:: ${job.name}`);
     });
 
-    scheduler.on('failed', (jobId, reason) => {
-      console.error(`[${worker.name}] Job Failed >> JobId:: ${jobId}, Error:: ${reason.name}, Message:: ${reason.message}`);
-      logger.error(`[${worker.name}] Job Failed >> JobId:: ${jobId}, Error:: ${reason.name}, Message:: ${reason.message}`);
+    worker.on('failed', (job, error) => {
+      console.error(`[${worker.name}] Job Failed >> JobId:: ${job.id}, Error:: ${error.name}, Message:: ${error.message}`);
+      logger.error(`[${worker.name}] Job Failed >> JobId:: ${job.id}, Error:: ${error.name}, Message:: ${error.message}`);
     });
 
-    scheduler.on('error', error => {
+    worker.on('error', error => {
       console.error(`[${worker.name}] Error >> Error:: ${error.name}, Message:: ${error.message}`);
       logger.error(`[${worker.name}] Error >> Error:: ${error.name}, Message:: ${error.message}`);
     });
+
+    logger.info(`[${worker.name}] Worker registered`);
   });
 }
 

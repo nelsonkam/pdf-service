@@ -1,16 +1,23 @@
-import { Body, JsonController, Post, UseBefore } from 'routing-controllers';
+import { Body, HttpCode, JsonController, Post, UseBefore } from 'routing-controllers';
 import { validationMiddleware } from '@middlewares/validation.middleware';
 import { PdfUploadDto } from '@dtos/pdf-upload.dto';
 import { PdfService } from '@services/pdf.service';
 import { OpenAPI } from 'routing-controllers-openapi';
+import { FileStorageService } from '@services/file-storage.service';
+import { queues } from '@utils/queue';
+import { AxiosHttpClientAdapter } from '@/adapters/http-client/axios.adapter';
 
 @JsonController()
 export class PdfController {
-  private service = new PdfService();
+  private readonly service: PdfService;
+
+  constructor() {
+    this.service = new PdfService(new FileStorageService(), queues.pdfQueue, new AxiosHttpClientAdapter());
+  }
 
   @Post('/')
+  @HttpCode(202)
   @UseBefore(validationMiddleware(PdfUploadDto, 'body'))
-  @OpenAPI({ summary: 'Return a list of users' })
   async uploadPDF(@Body() dto: PdfUploadDto) {
     return this.service.preProcessPdf(dto);
   }
