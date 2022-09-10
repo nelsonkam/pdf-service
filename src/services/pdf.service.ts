@@ -3,24 +3,28 @@ import axios from 'axios';
 import * as crypto from 'crypto';
 import * as mimeType from 'mime-types';
 import { ScopedLogger } from '@utils/logger';
-import { HttpException } from '@exceptions/HttpException';
 import { queues } from '@utils/queue';
-import { Job } from 'bullmq';
+import { FileStorageService } from '@services/file-storage.service';
+import { Queue } from 'bullmq';
 
 export class PdfService {
-  private logger = new ScopedLogger(PdfService.name);
+  private readonly logger = new ScopedLogger(PdfService.name);
+  constructor(private readonly fileStorageService = new FileStorageService(), private readonly pdfQueue: Queue = queues.pdfQueue) {}
+
   public async preProcessPdf(dto: PdfUploadDto): Promise<{ id: string }> {
     const id = crypto.randomUUID();
-    await queues.pdfQueue.add(id, { id, url: dto.url });
+    await this.pdfQueue.add(id, { id, url: dto.url });
     return { id };
   }
 
-  public async processPdf(id: string, url: string) {
-    this.logger.info('PDF processing started');
+  public async downloadPdf(id: string, url: string) {
+    this.logger.info('PDF download started');
 
     await this.validateURL(url);
 
-    return { id: crypto.randomUUID() };
+    const fileUrl = await this.fileStorageService.downloadFile(url, 'pdfs', `${id}.pdf`);
+
+    return { id: crypto.randomUUID(), url: fileUrl };
   }
 
   private async validateURL(url: string) {

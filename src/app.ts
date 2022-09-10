@@ -17,6 +17,7 @@ import { logger, stream } from '@utils/logger';
 import { queues } from '@utils/queue';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { ExpressAdapter } from '@bull-board/express';
+import { STATIC_FILES_ENDPOINT } from '@utils/constants';
 
 class App {
   public app: express.Application;
@@ -56,6 +57,7 @@ class App {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(cookieParser());
+    this.app.use(STATIC_FILES_ENDPOINT, express.static('uploads'));
   }
 
   private initializeRoutes(controllers: Function[]) {

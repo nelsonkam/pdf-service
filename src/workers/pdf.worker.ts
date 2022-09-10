@@ -7,7 +7,7 @@ export const pdfWorker = new Worker(
   queues.pdfQueue.name,
   async (job: Job<PdfWorkerJob>) => {
     const service = new PdfService();
-    return await service.processPdf(job.data.id, job.data.url);
+    return await service.downloadPdf(job.data.id, job.data.url);
   },
   { concurrency: 10, connection: queueConnection },
 );
