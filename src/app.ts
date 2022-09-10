@@ -10,9 +10,13 @@ import morgan from 'morgan';
 import { useExpressServer, getMetadataArgsStorage } from 'routing-controllers';
 import { routingControllersToSpec } from 'routing-controllers-openapi';
 import swaggerUi from 'swagger-ui-express';
+import { createBullBoard } from '@bull-board/api';
 import { NODE_ENV, PORT, LOG_FORMAT, ORIGIN, CREDENTIALS } from '@config';
 import errorMiddleware from '@middlewares/error.middleware';
 import { logger, stream } from '@utils/logger';
+import { queues } from '@utils/queue';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
+import { ExpressAdapter } from '@bull-board/express';
 
 class App {
   public app: express.Application;
@@ -28,6 +32,7 @@ class App {
     this.initializeRoutes(Controllers);
     this.initializeSwagger(Controllers);
     this.initializeErrorHandling();
+    this.initializeBullBoard();
   }
 
   public listen() {
@@ -87,7 +92,7 @@ class App {
       },
       info: {
         description: 'Generated with `routing-controllers-openapi`',
-        title: 'A sample API',
+        title: 'PDF Service',
         version: '1.0.0',
       },
     });
@@ -97,6 +102,16 @@ class App {
 
   private initializeErrorHandling() {
     this.app.use(errorMiddleware);
+  }
+
+  private initializeBullBoard() {
+    const serverAdapter = new ExpressAdapter();
+    serverAdapter.setBasePath('/admin/queues');
+    createBullBoard({
+      queues: Object.values(queues).map(queue => new BullMQAdapter(queue)),
+      serverAdapter: serverAdapter,
+    });
+    this.app.use('/admin/queues', serverAdapter.getRouter());
   }
 }
 
