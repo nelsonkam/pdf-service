@@ -19,7 +19,11 @@ export const validationMiddleware = (
 ): RequestHandler => {
   return (req, res, next) => {
     const obj = plainToClass(type, req[value]);
-    validate(obj, { skipMissingProperties, whitelist, forbidNonWhitelisted }).then((errors: ValidationError[]) => {
+    validate(obj, {
+      skipMissingProperties,
+      whitelist,
+      forbidNonWhitelisted,
+    }).then((errors: ValidationError[]) => {
       if (errors.length > 0) {
         const message = errors.map(getAllNestedErrors).join(', ');
         next(new HttpException(400, message));

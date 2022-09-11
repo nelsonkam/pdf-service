@@ -1,8 +1,11 @@
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 import * as mimeType from 'mime-types';
 import { Stream } from 'stream';
 
-import { FileStreamResponse, HttpClientAdapter } from '@interfaces/http-client-adapter.interface';
+import {
+  FileStreamResponse,
+  HttpClientAdapter,
+} from '@interfaces/http-client-adapter.interface';
 
 export class AxiosHttpClientAdapter implements HttpClientAdapter {
   async getFileFromUrl(url: string): Promise<FileStreamResponse> {

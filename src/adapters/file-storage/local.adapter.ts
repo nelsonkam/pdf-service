@@ -36,6 +36,20 @@ export class LocalFileStorageAdapter implements FileStorageAdapter {
    * @param key
    */
   async retrieve(bucket: string, key: string): Promise<string> {
-    return new URL(`${STATIC_FILES_ENDPOINT}/${bucket}/${key}`, APP_URL).toString();
+    return new URL(
+      `${STATIC_FILES_ENDPOINT}/${bucket}/${key}`,
+      APP_URL,
+    ).toString();
+  }
+
+  /**
+   * Given a bucket and key, returns a ReadableStream of the file's content.
+   *
+   * @param bucket
+   * @param key
+   */
+  async read(bucket: string, key: string): Promise<NodeJS.ReadableStream> {
+    const folder = path.join(UPLOADS_DIR, bucket);
+    return fs.createReadStream(path.join(folder, key));
   }
 }

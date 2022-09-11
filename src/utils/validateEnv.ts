@@ -9,7 +9,9 @@ const validateEnv = () => {
     REDIS_PORT: port(),
     APP_URL: url(),
     UPLOADS_DIR: str(),
-    FILE_STORAGE_ENGINE: str({ choices: [FileStorageEngine.LOCAL, FileStorageEngine.MEMORY] }),
+    FILE_STORAGE_ENGINE: str({
+      choices: [FileStorageEngine.LOCAL, FileStorageEngine.MEMORY],
+    }),
   });
 };
 

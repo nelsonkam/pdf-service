@@ -12,9 +12,20 @@ export class FileStorageService {
     return new LocalFileStorageAdapter();
   }
 
-  public async downloadFile(stream: Stream, bucket: string, fileName: string): Promise<string> {
+  public async downloadFile(
+    stream: Stream,
+    bucket: string,
+    fileName: string,
+  ): Promise<string> {
     await this.fileStorageAdapter.save(stream, bucket, fileName);
 
     return await this.fileStorageAdapter.retrieve(bucket, fileName);
+  }
+
+  public async readFile(
+    bucket: string,
+    fileName: string,
+  ): Promise<NodeJS.ReadableStream> {
+    return this.fileStorageAdapter.read(bucket, fileName);
   }
 }

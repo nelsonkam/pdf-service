@@ -30,6 +30,7 @@
       "@middlewares/*": ["middlewares/*"],
       "@models/*": ["models/*"],
       "@services/*": ["services/*"],
+      "@adapters/*": ["adapters/*"],
       "@utils/*": ["utils/*"]
     }
   },

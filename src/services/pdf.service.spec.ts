@@ -6,12 +6,19 @@ import { faker } from '@faker-js/faker';
 import { HttpClientAdapter } from '@interfaces/http-client-adapter.interface';
 import { Stream } from 'stream';
 import * as mimeType from 'mime-types';
+import { GraphicsAdapter } from '@interfaces/graphics-adapter.interface';
 
 describe('PdfService', () => {
   const fileStorageService = mock<FileStorageService>();
   const pdfQueue = mock<Queue>();
   const httpClient = mock<HttpClientAdapter>();
-  const service = new PdfService(fileStorageService, pdfQueue, httpClient);
+  const graphics = mock<GraphicsAdapter>();
+  const service = new PdfService(
+    fileStorageService,
+    pdfQueue,
+    httpClient,
+    graphics,
+  );
 
   describe('PdfService.preProcessPdf', () => {
     it('should return immediately with an ID', async () => {
@@ -39,7 +46,9 @@ describe('PdfService', () => {
         mimeType: '',
       });
 
-      await expect(service.downloadPdf(id, url)).rejects.toThrowError('The PDF URL provided does not resolve with a 200 OK status');
+      await expect(service.downloadPdf(id, url)).rejects.toThrowError(
+        'The PDF URL provided does not resolve with a 200 OK status',
+      );
     });
 
     it('should throw an error if mimeType is incorrect', async () => {
@@ -51,7 +60,9 @@ describe('PdfService', () => {
         mimeType: 'image/png',
       });
 
-      await expect(service.downloadPdf(id, url)).rejects.toThrowError('The URL provided does not reference a valid PDF document');
+      await expect(service.downloadPdf(id, url)).rejects.toThrowError(
+        'The URL provided does not reference a valid PDF document',
+      );
     });
 
     it('should run without errors', async () => {
@@ -68,6 +79,16 @@ describe('PdfService', () => {
 
       expect(result.id).toBeTruthy();
       expect(result.url).toBeTruthy();
+    });
+  });
+
+  describe('PdfService.generateThumbnail', () => {
+    it('should generate a thumbnail without errors', async () => {
+      const result = await service.generateThumbnail(faker.datatype.uuid());
+      expect(result).toBeTruthy();
+      expect(fileStorageService.readFile).toHaveBeenCalled();
+      expect(graphics.convertPdfPageToImage).toHaveBeenCalled();
+      expect(fileStorageService.downloadFile).toHaveBeenCalled();
     });
   });
 });
