@@ -1,5 +1,6 @@
 import {
   Body,
+  Get,
   HttpCode,
   JsonController,
   Post,
@@ -8,11 +9,11 @@ import {
 import { validationMiddleware } from '@middlewares/validation.middleware';
 import { PdfUploadDto } from '@dtos/pdf-upload.dto';
 import { PdfService } from '@services/pdf.service';
-import { OpenAPI } from 'routing-controllers-openapi';
 import { FileStorageService } from '@services/file-storage.service';
 import { queues } from '@utils/queue';
 import { AxiosHttpClientAdapter } from '@adapters/http-client/axios.adapter';
 import { GMGraphicsAdapter } from '@adapters/graphics/gm.adapter';
+import { PdfDocumentRepository } from '@/repositories/pdf-document.repository';
 
 @JsonController()
 export class PdfController {
@@ -24,13 +25,21 @@ export class PdfController {
       queues.pdfQueue,
       new AxiosHttpClientAdapter(),
       new GMGraphicsAdapter(),
+      new PdfDocumentRepository(),
     );
   }
 
-  @Post('/')
+  @Post('/document')
   @HttpCode(202)
   @UseBefore(validationMiddleware(PdfUploadDto, 'body'))
   async uploadPDF(@Body() dto: PdfUploadDto) {
-    return this.service.preProcessPdf(dto);
+    await this.service.preProcessPdf(dto);
+    return { message: 'OK' };
+  }
+
+  @Get('/documents')
+  @HttpCode(200)
+  async getDocumentList() {
+    return await this.service.getDocuments();
   }
 }

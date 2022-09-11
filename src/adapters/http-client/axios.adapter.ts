@@ -1,19 +1,18 @@
 import axios from 'axios';
 import * as mimeType from 'mime-types';
-import { Stream } from 'stream';
 
 import {
-  FileStreamResponse,
+  FileResponse,
   HttpClientAdapter,
 } from '@interfaces/http-client-adapter.interface';
 
 export class AxiosHttpClientAdapter implements HttpClientAdapter {
-  async getFileFromUrl(url: string): Promise<FileStreamResponse> {
-    const response = await axios.get<Stream>(url, { responseType: 'stream' });
+  async getFileFromUrl(url: string): Promise<FileResponse> {
+    const response = await axios.get(url, { responseType: 'arraybuffer' });
 
     return {
       status: response.status,
-      fileStream: response.data,
+      content: Buffer.from(response.data),
       mimeType: mimeType.contentType(response.headers['content-type']),
     };
   }

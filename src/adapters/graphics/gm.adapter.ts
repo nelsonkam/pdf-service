@@ -1,7 +1,6 @@
 import gm from 'gm';
 
 import { GraphicsAdapter } from '@interfaces/graphics-adapter.interface';
-import { Stream } from 'stream';
 import ReadableStream = NodeJS.ReadableStream;
 
 export class GMGraphicsAdapter implements GraphicsAdapter {
@@ -10,12 +9,17 @@ export class GMGraphicsAdapter implements GraphicsAdapter {
   async convertPdfPageToImage(
     pdfFileStream: ReadableStream,
     page: number,
-  ): Promise<Stream> {
-    return this.gmClass(pdfFileStream)
-      .selectFrame(page)
-      .density(72, 72)
-      .quality(0)
-      .compress('JPEG')
-      .stream('png');
+  ): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      this.gmClass(pdfFileStream)
+        .selectFrame(page)
+        .density(72, 72)
+        .quality(0)
+        .compress('JPEG')
+        .toBuffer('png', (err, buffer) => {
+          if (err) reject(err);
+          resolve(buffer);
+        });
+    });
   }
 }

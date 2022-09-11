@@ -5,6 +5,7 @@ import { PdfService } from '@services/pdf.service';
 import { FileStorageService } from '@services/file-storage.service';
 import { AxiosHttpClientAdapter } from '@adapters/http-client/axios.adapter';
 import { GMGraphicsAdapter } from '@adapters/graphics/gm.adapter';
+import { PdfDocumentRepository } from '@/repositories/pdf-document.repository';
 
 export const pdfWorker = new Worker(
   queues.pdfQueue.name,
@@ -14,9 +15,12 @@ export const pdfWorker = new Worker(
       queues.pdfQueue,
       new AxiosHttpClientAdapter(),
       new GMGraphicsAdapter(),
+      new PdfDocumentRepository(),
     );
-    await service.downloadPdf(job.data.id, job.data.url);
-    await service.generateThumbnail(job.data.id);
+    const { name, isDuplicate } = await service.downloadPdf(job.data.url);
+    if (!isDuplicate) {
+      await service.generateThumbnail(name);
+    }
   },
   { concurrency: 10, connection: queueConnection },
 );

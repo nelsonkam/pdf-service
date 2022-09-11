@@ -1,7 +1,5 @@
-import { Stream } from 'stream';
-
 export interface FileStorageAdapter {
-  save(stream: Stream, bucket: string, key: string): Promise<void>;
-  retrieve(bucket: string, key: string): Promise<string>;
+  save(content: Buffer, bucket: string, key: string): Promise<void>;
+  getURL(bucket: string, key: string): string;
   read(bucket: string, key: string): Promise<NodeJS.ReadableStream>;
 }

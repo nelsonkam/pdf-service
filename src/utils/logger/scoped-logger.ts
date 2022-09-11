@@ -1,7 +1,7 @@
 import { logger } from '@utils/logger/logger';
 
 export class ScopedLogger {
-  private scope: string;
+  private readonly scope: string;
 
   constructor(scope: string) {
     this.scope = scope;

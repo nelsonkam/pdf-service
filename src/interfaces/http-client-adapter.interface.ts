@@ -1,10 +1,8 @@
-import { Stream } from 'stream';
-
-export interface FileStreamResponse {
+export interface FileResponse {
   status: number;
-  fileStream: Stream;
+  content: Buffer;
   mimeType: string;
 }
 export interface HttpClientAdapter {
-  getFileFromUrl(url: string): Promise<FileStreamResponse>;
+  getFileFromUrl(url: string): Promise<FileResponse>;
 }

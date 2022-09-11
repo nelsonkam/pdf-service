@@ -4,3 +4,8 @@ export enum FileStorageEngine {
   LOCAL = 'local',
   MEMORY = 'memory',
 }
+
+export const BUCKETS = {
+  PDF: 'pdfs',
+  THUMBNAIL: 'thumbnails',
+};
