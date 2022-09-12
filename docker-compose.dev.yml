@@ -3,11 +3,11 @@ version: '3'
 services:
   app:
     build:
-      context: ../../
-      dockerfile: docker/dev/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     command: npm run dev
     volumes:
-      - ../../:/usr/src/app
+      - ./:/usr/src/app
       - /usr/src/app/node_modules
     ports:
       - "3000:3000"
@@ -17,14 +17,15 @@ services:
 
   worker:
     build:
-      context: ../../
-      dockerfile: docker/dev/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     command: npm run dev:worker
     volumes:
-      - ../../:/usr/src/app
+      - ./:/usr/src/app
       - /usr/src/app/node_modules
     depends_on:
       - app
+      - postgres
       - redis
 
   redis:

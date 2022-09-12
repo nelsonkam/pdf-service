@@ -4,7 +4,7 @@ import { mock } from 'jest-mock-extended';
 import { Queue } from 'bullmq';
 import { faker } from '@faker-js/faker';
 import { HttpClientAdapter } from '@interfaces/http-client-adapter.interface';
-import * as mimeType from 'mime-types';
+import * as contentType from 'mime-types';
 import { GraphicsAdapter } from '@interfaces/graphics-adapter.interface';
 import { PdfDocumentRepository } from '@/repositories/pdf-document.repository';
 
@@ -43,7 +43,7 @@ describe('PdfService', () => {
         Promise.resolve({
           status: 404,
           content: Buffer.from('test'),
-          mimeType: '',
+          contentType: '',
         }),
       );
 
@@ -52,13 +52,13 @@ describe('PdfService', () => {
       );
     });
 
-    it('should throw an error if mimeType is incorrect', async () => {
+    it('should throw an error if contentType is incorrect', async () => {
       const url = faker.internet.url();
       httpClient.getFileFromUrl.mockReturnValueOnce(
         Promise.resolve({
           status: 200,
           content: Buffer.from('test'),
-          mimeType: 'image/png',
+          contentType: 'image/png',
         }),
       );
 
@@ -73,7 +73,7 @@ describe('PdfService', () => {
         Promise.resolve({
           status: 200,
           content: Buffer.from('test'),
-          mimeType: mimeType.lookup('pdf'),
+          contentType: contentType.lookup('pdf'),
         }),
       );
 
@@ -103,7 +103,7 @@ describe('PdfService', () => {
         Promise.resolve({
           status: 200,
           content: Buffer.from('test'),
-          mimeType: mimeType.lookup('pdf'),
+          contentType: contentType.lookup('pdf'),
         }),
       );
       fileStorageService.downloadFile.mockReturnValueOnce(
