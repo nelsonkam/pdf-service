@@ -1,5 +1,4 @@
 import { PdfService } from '@services/pdf.service';
-import { FileStorageService } from '@services/file-storage.service';
 import { mock } from 'jest-mock-extended';
 import { Queue } from 'bullmq';
 import { faker } from '@faker-js/faker';
@@ -7,19 +6,20 @@ import { HttpClientAdapter } from '@interfaces/http-client-adapter.interface';
 import * as contentType from 'mime-types';
 import { GraphicsAdapter } from '@interfaces/graphics-adapter.interface';
 import { PdfDocumentRepository } from '@/repositories/pdf-document.repository';
+import { FileStorageAdapter } from '@interfaces/file-storage-adapter.interface';
 
 describe('PdfService', () => {
-  const fileStorageService = mock<FileStorageService>();
+  const fileStorage = mock<FileStorageAdapter>();
   const pdfQueue = mock<Queue>();
   const httpClient = mock<HttpClientAdapter>();
   const graphics = mock<GraphicsAdapter>();
   const repository = mock<PdfDocumentRepository>();
   const service = new PdfService(
-    fileStorageService,
     pdfQueue,
     httpClient,
     graphics,
     repository,
+    fileStorage,
   );
 
   describe('PdfService.preProcessPdf', () => {
@@ -85,10 +85,9 @@ describe('PdfService', () => {
         }),
       );
 
-      fileStorageService.downloadFile.mockReturnValueOnce(
-        Promise.resolve(faker.internet.url()),
-      );
-      fileStorageService.getFileURL.mockReturnValueOnce(faker.internet.url());
+      fileStorage.getURL
+        .mockReturnValueOnce(faker.internet.url())
+        .mockReturnValueOnce(faker.internet.url());
 
       const result = await service.downloadPdf(url);
 
@@ -106,9 +105,7 @@ describe('PdfService', () => {
           contentType: contentType.lookup('pdf'),
         }),
       );
-      fileStorageService.downloadFile.mockReturnValueOnce(
-        Promise.resolve(faker.internet.url()),
-      );
+      fileStorage.getURL.mockReturnValueOnce(faker.internet.url());
       repository.createPdfDocument.mockReturnValueOnce(
         Promise.resolve({
           name: faker.system.fileName(),
@@ -129,9 +126,9 @@ describe('PdfService', () => {
     it('should generate a thumbnail without errors', async () => {
       const result = await service.generateThumbnail(faker.datatype.uuid());
       expect(result).toBeTruthy();
-      expect(fileStorageService.readFile).toHaveBeenCalled();
+      expect(fileStorage.read).toHaveBeenCalled();
       expect(graphics.convertPdfPageToImage).toHaveBeenCalled();
-      expect(fileStorageService.downloadFile).toHaveBeenCalled();
+      expect(fileStorage.save).toHaveBeenCalled();
     });
   });
 
@@ -146,7 +143,9 @@ describe('PdfService', () => {
           },
         ]),
       );
-      fileStorageService.getFileURL.mockReturnValue(faker.internet.url());
+      fileStorage.getURL
+        .mockReturnValueOnce(faker.internet.url())
+        .mockReturnValueOnce(faker.internet.url());
       const result = await service.getDocuments();
       expect(result).toBeTruthy();
       expect(result).toEqual([

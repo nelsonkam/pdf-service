@@ -9,7 +9,6 @@ import {
 import { validationMiddleware } from '@middlewares/validation.middleware';
 import { PdfUploadDto } from '@dtos/pdf-upload.dto';
 import { PdfService } from '@services/pdf.service';
-import { FileStorageService } from '@services/file-storage.service';
 import { queues } from '@utils/queue';
 import { AxiosHttpClientAdapter } from '@adapters/http-client/axios.adapter';
 import { GMGraphicsAdapter } from '@adapters/graphics/gm.adapter';
@@ -17,6 +16,7 @@ import { PdfDocumentRepository } from '@/repositories/pdf-document.repository';
 import { OpenAPI, ResponseSchema } from 'routing-controllers-openapi';
 import { PdfDocumentResponse } from '@dtos/pdf-document-response.dto';
 import { PdfUploadResponse } from '@dtos/pdf-upload-response.dto';
+import { LocalFileStorageAdapter } from '@adapters/file-storage/local.adapter';
 
 @JsonController('/v1')
 export class PdfController {
@@ -24,11 +24,11 @@ export class PdfController {
 
   constructor() {
     this.service = new PdfService(
-      new FileStorageService(),
       queues.pdfQueue,
       new AxiosHttpClientAdapter(),
       new GMGraphicsAdapter(),
       new PdfDocumentRepository(),
+      new LocalFileStorageAdapter(),
     );
   }
 

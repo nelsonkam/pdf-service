@@ -6,31 +6,29 @@ import {
   FileResponse,
   HttpClientAdapter,
 } from '@interfaces/http-client-adapter.interface';
-import { FileStorageService } from '@services/file-storage.service';
 import { GraphicsAdapter } from '@interfaces/graphics-adapter.interface';
 import { PdfDocumentRepository } from '@/repositories/pdf-document.repository';
 import { BUCKETS } from '@utils/constants';
+import { FileStorageAdapter } from '@interfaces/file-storage-adapter.interface';
+import { generateChecksum } from '@/utils';
 
 export class PdfService {
   private readonly logger = new ScopedLogger(PdfService.name);
 
   constructor(
-    private readonly fileStorageService: FileStorageService,
     private readonly pdfQueue: Queue,
     private readonly httpClient: HttpClientAdapter,
     private readonly graphics: GraphicsAdapter,
     private readonly repository: PdfDocumentRepository,
+    private readonly fileStorage: FileStorageAdapter,
   ) {}
 
   public async getDocuments() {
     const documents = await this.repository.findAll();
     return documents.map(document => {
       return {
-        pdf: this.fileStorageService.getFileURL(BUCKETS.PDF, document.name),
-        thumbnail: this.fileStorageService.getFileURL(
-          BUCKETS.THUMBNAIL,
-          document.name,
-        ),
+        pdf: this.fileStorage.getURL(BUCKETS.PDF, document.name),
+        thumbnail: this.fileStorage.getURL(BUCKETS.THUMBNAIL, document.name),
       };
     });
   }
@@ -74,9 +72,7 @@ export class PdfService {
     }
 
     this.logger.info(`Generating checksum for ${url}`);
-    const checksum = await this.fileStorageService.generateChecksum(
-      response.content,
-    );
+    const checksum = await generateChecksum(response.content);
 
     this.logger.info(`Checksum generated. URL:: ${url}`);
     let document = await this.repository.findByCheckSum(checksum);
@@ -87,21 +83,14 @@ export class PdfService {
 
       return {
         name: document.name,
-        url: this.fileStorageService.getFileURL(
-          BUCKETS.PDF,
-          `${document.name}.pdf`,
-        ),
+        url: this.fileStorage.getURL(BUCKETS.PDF, `${document.name}.pdf`),
         isDuplicate: true,
       };
     } else {
       this.logger.info(`Downloading and saving document for ${url}`);
 
       document = await this.repository.createPdfDocument(checksum);
-      fileUrl = await this.fileStorageService.downloadFile(
-        response.content,
-        BUCKETS.PDF,
-        `${document.name}.pdf`,
-      );
+      fileUrl = this.fileStorage.getURL(BUCKETS.PDF, `${document.name}.pdf`);
       this.logger.info(`PDF download finished for ${url}`);
       return { name: document.name, url: fileUrl, isDuplicate: false };
     }
@@ -116,19 +105,18 @@ export class PdfService {
   public async generateThumbnail(name: string) {
     this.logger.info(`Thumbnail generation started for ${name}`);
 
-    const stream = await this.fileStorageService.readFile(
-      BUCKETS.PDF,
-      `${name}.pdf`,
-    );
+    const stream = await this.fileStorage.read(BUCKETS.PDF, `${name}.pdf`);
     const thumbnailStream = await this.graphics.convertPdfPageToImage(
       stream,
       0,
     );
-    const url = await this.fileStorageService.downloadFile(
+    await this.fileStorage.save(
       thumbnailStream,
       BUCKETS.THUMBNAIL,
       `${name}.png`,
     );
+
+    const url = this.fileStorage.getURL(BUCKETS.THUMBNAIL, `${name}.png`);
 
     this.logger.info(`Thumbnail generation finished for ${name}`);
     return { id: name, url };
