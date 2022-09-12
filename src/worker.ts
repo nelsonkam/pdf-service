@@ -2,6 +2,7 @@ import { QueueScheduler, Worker } from 'bullmq';
 import { logger } from '@utils/logger';
 import { NODE_ENV, REDIS_HOST, REDIS_PORT } from '@config';
 import { pdfWorker } from '@/workers/pdf.worker';
+import { webhookWorker } from '@/workers/webhook.worker';
 
 function start(workers: Worker[]) {
   logger.info(`=================================`);
@@ -50,4 +51,4 @@ function start(workers: Worker[]) {
   });
 }
 
-start([pdfWorker]);
+start([pdfWorker, webhookWorker]);

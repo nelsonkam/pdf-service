@@ -22,6 +22,10 @@ describe('PdfService', () => {
     fileStorage,
   );
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('PdfService.preProcessPdf', () => {
     it('should return immediately with an ID', async () => {
       const input = {
@@ -124,11 +128,18 @@ describe('PdfService', () => {
 
   describe('PdfService.generateThumbnail', () => {
     it('should generate a thumbnail without errors', async () => {
-      const result = await service.generateThumbnail(faker.datatype.uuid());
-      expect(result).toBeTruthy();
+      await service.generateThumbnail(faker.datatype.uuid(), false);
       expect(fileStorage.read).toHaveBeenCalled();
       expect(graphics.convertPdfPageToImage).toHaveBeenCalled();
       expect(fileStorage.save).toHaveBeenCalled();
+    });
+
+    it('should not generate a thumbnail when document is a duplicate', async () => {
+      await service.generateThumbnail(faker.datatype.uuid(), true);
+      expect(fileStorage.getURL).toHaveBeenCalled();
+      expect(fileStorage.read).not.toHaveBeenCalled();
+      expect(graphics.convertPdfPageToImage).not.toHaveBeenCalled();
+      expect(fileStorage.save).not.toHaveBeenCalled();
     });
   });
 
@@ -151,6 +162,22 @@ describe('PdfService', () => {
       expect(result).toEqual([
         { pdf: expect.any(String), thumbnail: expect.any(String) },
       ]);
+    });
+  });
+
+  describe('PdfService.notifyWebhook', () => {
+    it('should call the webhook URL without errors', async () => {
+      httpClient.notifyWebhook.mockReturnValueOnce(
+        Promise.resolve({ statusCode: 200 }),
+      );
+      const webhookUrl = faker.internet.url();
+      const data = {
+        pdf: faker.internet.url(),
+        thumbnail: faker.internet.url(),
+      };
+      const result = await service.notifyWebhook(webhookUrl, data);
+      expect(result).toBeTruthy();
+      expect(httpClient.notifyWebhook).toHaveBeenCalledWith(webhookUrl, data);
     });
   });
 });

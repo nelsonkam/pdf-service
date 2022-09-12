@@ -24,7 +24,7 @@ export class PdfController {
 
   constructor() {
     this.service = new PdfService(
-      queues.pdfQueue,
+      queues.pdf,
       new AxiosHttpClientAdapter(),
       new GMGraphicsAdapter(),
       new PdfDocumentRepository(),

@@ -15,4 +15,12 @@ export class AxiosHttpClientAdapter implements HttpClientAdapter {
       contentType: response.headers['content-type'],
     };
   }
+
+  async notifyWebhook<T>(
+    url: string,
+    data: T,
+  ): Promise<{ statusCode: number }> {
+    const response = await axios.post(url, data);
+    return { statusCode: response.status };
+  }
 }

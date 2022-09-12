@@ -1,4 +1,4 @@
 export interface PdfWorkerJob {
-  id: string;
   url: string;
+  webhookUrl?: string;
 }

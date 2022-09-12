@@ -11,18 +11,23 @@ import { PdfDocumentRepository } from '@/repositories/pdf-document.repository';
 import { BUCKETS } from '@utils/constants';
 import { FileStorageAdapter } from '@interfaces/file-storage-adapter.interface';
 import { generateChecksum } from '@/utils';
+import { PdfDocumentResponse } from '@dtos/pdf-document-response.dto';
+import { PdfWorkerJob } from '@interfaces/pdf-worker-job.interface';
 
 export class PdfService {
   private readonly logger = new ScopedLogger(PdfService.name);
 
   constructor(
-    private readonly pdfQueue: Queue,
+    private readonly pdfQueue: Queue<PdfWorkerJob>,
     private readonly httpClient: HttpClientAdapter,
     private readonly graphics: GraphicsAdapter,
     private readonly repository: PdfDocumentRepository,
     private readonly fileStorage: FileStorageAdapter,
   ) {}
 
+  /**
+   * Returns a list of all stored PDF document and their associated thumbnails
+   */
   public async getDocuments() {
     const documents = await this.repository.findAll();
     return documents.map(document => {
@@ -36,13 +41,10 @@ export class PdfService {
   /**
    * Adds job to the queue for processing
    *
-   *
    * @param dto
    */
   public async preProcessPdf(dto: PdfUploadDto) {
-    await this.pdfQueue.add('process-pdf', {
-      url: dto.url,
-    });
+    await this.pdfQueue.add('process-pdf', dto);
   }
 
   /**
@@ -101,9 +103,15 @@ export class PdfService {
    * and saves it.
    *
    * @param name
+   * @param isDuplicate
    */
-  public async generateThumbnail(name: string) {
+  public async generateThumbnail(name: string, isDuplicate: boolean) {
     this.logger.info(`Thumbnail generation started for ${name}`);
+
+    if (isDuplicate) {
+      // If it is a duplicate then the thumbnail has already been generated
+      return this.fileStorage.getURL(BUCKETS.THUMBNAIL, `${name}.png`);
+    }
 
     const stream = await this.fileStorage.read(BUCKETS.PDF, `${name}.pdf`);
     const thumbnailStream = await this.graphics.convertPdfPageToImage(
@@ -119,6 +127,10 @@ export class PdfService {
     const url = this.fileStorage.getURL(BUCKETS.THUMBNAIL, `${name}.png`);
 
     this.logger.info(`Thumbnail generation finished for ${name}`);
-    return { id: name, url };
+    return url;
+  }
+
+  async notifyWebhook(url: string, result: PdfDocumentResponse) {
+    return this.httpClient.notifyWebhook(url, result);
   }
 }
