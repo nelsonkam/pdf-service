@@ -5,6 +5,10 @@ A microservice that, when given a link to a pdf document:
 1. Stores the document in local storage and
 2. Generates a thumbnail for the document
 
+The service is also able to:
+* Detect duplicates
+* Push a webhook to notify the API client of the successful processing with exponential backoff if the endpoint fails.
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
