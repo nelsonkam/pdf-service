@@ -1,5 +1,4 @@
 import axios from 'axios';
-import * as mimeType from 'mime-types';
 
 import {
   FileResponse,
@@ -13,7 +12,7 @@ export class AxiosHttpClientAdapter implements HttpClientAdapter {
     return {
       status: response.status,
       content: Buffer.from(response.data),
-      mimeType: mimeType.contentType(response.headers['content-type']),
+      contentType: response.headers['content-type'],
     };
   }
 }

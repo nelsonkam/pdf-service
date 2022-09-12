@@ -65,7 +65,9 @@ export class PdfService {
     }
 
     const pdfMimeType = mimeType.lookup('pdf');
-    if (response.mimeType !== pdfMimeType) {
+    if (
+      !response.contentType.toLowerCase().includes(pdfMimeType.toLowerCase())
+    ) {
       throw new Error(
         'The URL provided does not reference a valid PDF document',
       );
