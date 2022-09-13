@@ -122,6 +122,7 @@ describe('PdfService', () => {
 
       expect(result.name).toBeTruthy();
       expect(result.url).toBeTruthy();
+      expect(fileStorage.save).toHaveBeenCalled();
       expect(result.isDuplicate).toBeFalsy();
     });
   });

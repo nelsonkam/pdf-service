@@ -32,8 +32,11 @@ export class PdfService {
     const documents = await this.repository.findAll();
     return documents.map(document => {
       return {
-        pdf: this.fileStorage.getURL(BUCKETS.PDF, document.name),
-        thumbnail: this.fileStorage.getURL(BUCKETS.THUMBNAIL, document.name),
+        pdf: this.fileStorage.getURL(BUCKETS.PDF, `${document.name}.pdf`),
+        thumbnail: this.fileStorage.getURL(
+          BUCKETS.THUMBNAIL,
+          `${document.name}.png`,
+        ),
       };
     });
   }
@@ -92,6 +95,11 @@ export class PdfService {
       this.logger.info(`Downloading and saving document for ${url}`);
 
       document = await this.repository.createPdfDocument(checksum);
+      await this.fileStorage.save(
+        response.content,
+        BUCKETS.PDF,
+        `${document.name}.pdf`,
+      );
       fileUrl = this.fileStorage.getURL(BUCKETS.PDF, `${document.name}.pdf`);
       this.logger.info(`PDF download finished for ${url}`);
       return { name: document.name, url: fileUrl, isDuplicate: false };
