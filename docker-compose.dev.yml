@@ -6,6 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     command: npm run dev
+    entrypoint: ./docker-entrypoint.sh
     volumes:
       - ./:/usr/src/app
       - /usr/src/app/node_modules
@@ -25,8 +26,6 @@ services:
       - /usr/src/app/node_modules
     depends_on:
       - app
-      - postgres
-      - redis
 
   redis:
     image: "redis:alpine"

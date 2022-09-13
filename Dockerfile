@@ -10,5 +10,3 @@ RUN npm install --legacy-peer-deps
 
 COPY ./ /usr/src/app
 
-
-ENTRYPOINT ["./docker-entrypoint.sh"]
